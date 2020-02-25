@@ -11,6 +11,7 @@ export namespace cp_tables {
 		verified: boolean
 		age: number
 	}
+
 	export namespace cp_users_fields {
 		 export type id = string;
 		 export type created = any;
@@ -28,6 +29,7 @@ export namespace cp_tables {
 		auth_method: string
 		auth_value: any
 	}
+
 	export namespace cp_users_auth_fields {
 		 export type id = string;
 		 export type user_id = string;
