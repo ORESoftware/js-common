@@ -119,14 +119,14 @@ c.query('select * from information_schema.tables').then(async v => {
 
     s.write('\n');
     s.write(flatDeep(z).join('\n'));
-    s.write('\n');
+    s.write('\n\n');
     s.write(flatDeep(ns).join('\n'));
     s.write('\n');
 
 
   }
 
-  s.write('\n')
+  s.write('\n');
   s.write('}');
   s.end('\n');
 
