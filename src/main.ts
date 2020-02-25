@@ -2,6 +2,7 @@
 
 import {ConnectionOptions} from "tls";
 
+import * as fs from 'fs';
 export const foo = 'bar';
 
 export const r2gSmokeTest = function () {
@@ -24,6 +25,37 @@ const c = new pg.Client({
 c.connect().then(c => {
   console.log('connected');
 });
+
+const flatDeep = (arr: Array<any>) : Array<any> =>  {
+  return arr.reduce((acc, val) => acc.concat(Array.isArray(val) ? flatDeep(val) : val), [])
+};
+
+const getType = (t: string) : string => {
+
+  switch (String(t).toUpperCase()) {
+
+    case 'UUID':
+    case 'TEXT':
+    case 'VARCHAR':
+      return 'string';
+
+    case 'INT':
+    case 'INT4':
+    case 'BIGINT':
+      return 'number';
+
+    case 'BOOL':
+    case 'BOOLEAN':
+      return 'boolean';
+
+    default:
+      return 'any'
+  }
+
+};
+
+const s = fs.createWriteStream('/home/oleg/codes/channelmeter/js-common/assets/types.ts');
+
 
 c.query('select * from information_schema.tables').then(async v => {
 
@@ -59,7 +91,11 @@ c.query('select * from information_schema.tables').then(async v => {
     console.log(r);
   }
 
-  for(const t of tables){
+  s.write('\n');
+
+  s.write('export namespace cp_tables {\n');
+
+  for (const t of tables) {
 
     // const v = await c.query(`\\d ${t.table_schema}.${t.table_name}`);
 
@@ -72,8 +108,28 @@ c.query('select * from information_schema.tables').then(async v => {
     `);
 
     console.log(v);
+
+    const ns = [`\texport namespace ${t.table_name}_fields {`, [], '\t}'] as [string, Array<string>, string];
+    const z = [`\texport interface ${t.table_name} {`, [], '\t}'] as [string, Array<string>, string];
+
+    for (let r of v.rows) {
+      ns[1].push(`\t\t export type ${r.column_name} = ${getType(r.data_type)};`);
+      z[1].push('\t\t' + r.column_name + ': ' + getType(r.data_type))
+    }
+
+    s.write('\n');
+    s.write(flatDeep(z).join('\n'));
+    s.write('\n');
+    s.write(flatDeep(ns).join('\n'));
+    s.write('\n');
+
+
   }
 
+  s.write('\n')
+  s.write('}');
+  s.end('\n');
 
+  c.end().catch(console.error);
 
 });
