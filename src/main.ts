@@ -54,7 +54,7 @@ const getType = (t: string) : string => {
 
 };
 
-const s = fs.createWriteStream('/home/oleg/codes/channelmeter/js-common/assets/types.ts');
+const s = fs.createWriteStream('/home/oleg/codes/channelmeter/js-common/src/read-only/types.ts');
 
 
 c.query('select * from information_schema.tables').then(async v => {
