@@ -3,15 +3,9 @@
 import {ConnectionOptions} from "tls";
 
 import * as fs from 'fs';
-
-export const foo = 'bar';
-
-export const r2gSmokeTest = function () {
-  // r2g command line app uses this exported function
-  return true;
-};
-
+import * as path from 'path';
 import * as pg from 'pg'
+import * as cp from 'child_process';
 
 const c = new pg.Client({
   user: 'postgres',
@@ -37,11 +31,23 @@ const getType = (t: string): string => {
 
     case 'UUID':
     case 'TEXT':
+    case 'CHAR':
     case 'VARCHAR':
+    case 'VARCHAR2':
+    case 'DATE':
+    case 'TIMESTAMP':
+    case 'INTERVAL':
+    case 'TIMESTAMPTZ':
       return 'string';
 
     case 'INT':
     case 'INT4':
+    case 'INT8':
+    case 'INT32':
+    case 'INT64':
+    case 'INTEGER':
+    case 'SMALLINT':
+    case 'SERIAL':
     case 'BIGINT':
       return 'number';
 
@@ -49,13 +55,40 @@ const getType = (t: string): string => {
     case 'BOOLEAN':
       return 'boolean';
 
+    case 'ARRAY':
+      return 'Array<any>';
+
+    case 'JSON':
+    case 'JSONB':
+      return 'any';
+
     default:
       return 'any'
   }
 
 };
 
+const f = '/home/oleg/codes/channelmeter/js-common/src/read-only/types.ts';
+
+try {
+  fs.unlinkSync(f);
+}
+catch (err) {
+  console.error('Could not delete/unlink file:', f);
+}
+
 const s = fs.createWriteStream('/home/oleg/codes/channelmeter/js-common/src/read-only/types.ts');
+
+s.once('end', () => {
+  console.log('ended.');
+  // fs.chmodSync(f, fs.constants.O_RDONLY);
+});
+
+process.once('exit', code => {
+  fs.chmodSync(f, fs.constants.O_RDONLY);
+  cp.execSync(`chmod 444 ${f}`);
+  console.log('Exiting with code:', code);
+});
 
 p.then(async () => {
 
